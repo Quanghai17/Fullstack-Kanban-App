@@ -35,7 +35,6 @@ const Sidebar = () => {
     const activeItem = boards.findIndex(e => e.id === boardId)
 
     if (boards.length > 0 && boardId === undefined) {
-      console.log(boards[0])
       navigate(`/boards/${boards[0].id}`)
     }
     setActiveIndex(activeItem)
@@ -72,6 +71,8 @@ const Sidebar = () => {
       alert(err)
     }
   }
+
+ 
 
   return (
     <Drawer

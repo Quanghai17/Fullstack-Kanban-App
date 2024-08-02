@@ -22,4 +22,28 @@ router.put(
     boardController.updatePosition
 )
 
+router.get(
+    '/:boardId',
+    param('boardId').custom(value => {
+        if (!validation.isObjectId(value)) {
+            return Promise.reject('invalid id')
+        } else return Promise.resolve()
+    }),
+    validation.validate,
+    tokenHandler.verifyToken,
+    boardController.getOne
+)
+
+router.delete(
+    '/:boardId',
+    param('boardId').custom(value => {
+        if (!validation.isObjectId(value)) {
+            return Promise.reject('invalid id')
+        } else return Promise.resolve()
+    }),
+    validation.validate,
+    tokenHandler.verifyToken,
+    boardController.delete
+)
+
 module.exports = router
