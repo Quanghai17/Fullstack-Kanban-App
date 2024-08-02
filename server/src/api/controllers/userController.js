@@ -3,45 +3,58 @@ const CryptoJS = require('crypto-js')
 const jsonwebtoken = require('jsonwebtoken')
 
 exports.register = async (req, res) => {
-    const { password } = req.body
     try {
-        const { username, password } = req.body
-        const user = await User.findOne({ where: { username } })
+        const { username, password } = req.body;
 
-        console.log("user", user)
+        // Kiểm tra xem username đã tồn tại hay chưa
+        const user = await User.findOne({ username });
+
+        console.log("user", user);
 
         if (user) {
             return res.status(400).json({
                 message: "Tài khoản đã được đăng kí",
                 error: true,
-            })
+            });
         }
 
-        req.body.password = CryptoJS.AES.encrypt(
+        // Mã hóa mật khẩu
+        const encryptedPassword = CryptoJS.AES.encrypt(
             password,
             process.env.PASSWORD_SECRET_KEY
-        )
+        ).toString();
 
-        const userData = await User.create(req.body)
+        // Tạo người dùng mới
+        const userData = new User({
+            username,
+            password: encryptedPassword,
+        });
+
+        await userData.save();
+
+        // Tạo token
         const token = jsonwebtoken.sign(
-            { id: user._id },
+            { id: userData._id },
             process.env.TOKEN_SECRET_KEY,
             { expiresIn: '24h' }
-        )
+            
+        );
+
         res.status(201).json({
             data: userData,
             token: token,
             success: true,
             error: false,
-            message: "Đăng kí tài khoản thành công!"
-        })
+            message: "Đăng kí tài khoản thành công!",
+        });
     } catch (err) {
+        console.log(err);
         res.status(500).json({
             message: "Đăng kí tài khoản không thành công!",
-            error: true
-        })
+            error: true,
+        });
     }
-}
+};
 
 exports.login = async (req, res) => {
     const { username, password } = req.body
@@ -49,7 +62,7 @@ exports.login = async (req, res) => {
         const user = await User.findOne({ username }).select('password username')
         if (!user) {
             return res.status(401).json({
-                message : "Đăng nhập không thành công",
+                message: "Đăng nhập không thành công",
                 errors: [
                     {
                         param: 'username',
@@ -66,7 +79,7 @@ exports.login = async (req, res) => {
 
         if (decryptedPass !== password) {
             return res.status(401).json({
-                message : "Sai mật khẩu",
+                message: "Sai mật khẩu",
                 errors: [
                     {
                         param: 'username',
@@ -84,13 +97,13 @@ exports.login = async (req, res) => {
             { expiresIn: '24h' }
         )
 
-        res.status(200).json({ 
-            message : "Đăng nhập thành công",
-            data : user,
+        res.status(200).json({
+            message: "Đăng nhập thành công",
+            data: user,
             token: token,
-            success : true,
-            error : false
-         })
+            success: true,
+            error: false
+        })
 
     } catch (err) {
         res.status(500).json(err)
