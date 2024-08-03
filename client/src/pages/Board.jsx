@@ -8,7 +8,10 @@ import { useDispatch, useSelector } from 'react-redux'
 import boardApi from '../api/boardApi'
 import { setBoards } from '../redux/features/boardSlice'
 import { setFavouriteList } from '../redux/features/favouriteSlice'
-import EmojiPicker from '../components/common/EmojiPicker'
+import Kanban from '../components/common/Kanban'
+
+let timer
+const timeout = 500
 
 const Board = () => {
   const { boardId } = useParams()
@@ -28,7 +31,7 @@ const Board = () => {
     const getBoard = async () => {
       try {
         const res = await boardApi.getOne(boardId)
-        console.log("res", res)
+        // console.log("res", res)
         setTitle(res.title)
         setDescription(res.description)
         setSections(res.sections)
@@ -61,6 +64,62 @@ const Board = () => {
     }
   }
 
+  const updateTitle = async (e) => {
+    clearTimeout(timer)
+    const newTitle = e.target.value
+    setTitle(newTitle)
+
+    let temp = [...boards]
+    const index = temp.findIndex(e => e.id === boardId)
+    temp[index] = { ...temp[index], title: newTitle }
+
+    if (isFavourite) {
+      let tempFavourite = [...favouriteList]
+      const favouriteIndex = tempFavourite.findIndex(e => e.id === boardId)
+      tempFavourite[favouriteIndex] = { ...tempFavourite[favouriteIndex], title: newTitle }
+      dispatch(setFavouriteList(tempFavourite))
+    }
+
+    dispatch(setBoards(temp))
+
+    timer = setTimeout(async () => {
+      try {
+        await boardApi.update(boardId, { title: newTitle })
+      } catch (err) {
+        alert(err)
+      }
+    }, timeout);
+  }
+
+  const updateDescription = async (e) => {
+    clearTimeout(timer)
+    const newDescription = e.target.value
+    setDescription(newDescription)
+    timer = setTimeout(async () => {
+      try {
+        await boardApi.update(boardId, { description: newDescription })
+      } catch (err) {
+        alert(err)
+      }
+    }, timeout);
+  }
+
+  const addFavourite = async () => {
+    try {
+      const board = await boardApi.update(boardId, { favourite: !isFavourite })
+      let newFavouriteList = [...favouriteList]
+      if (isFavourite) {
+        newFavouriteList = newFavouriteList.filter(e => e.id !== boardId)
+      } else {
+        newFavouriteList.unshift(board)
+      }
+      dispatch(setFavouriteList(newFavouriteList))
+      setIsFavourite(!isFavourite)
+    } catch (err) {
+      alert(err)
+    }
+  }
+
   return (
     <>
       <Box sx={{
@@ -69,7 +128,7 @@ const Board = () => {
         justifyContent: 'space-between',
         width: '100%'
       }}>
-        <IconButton variant='outlined'>
+        <IconButton variant='outlined' onClick={addFavourite}>
           {
             isFavourite ? (
               <StarOutlinedIcon color='warning' />
@@ -86,7 +145,7 @@ const Board = () => {
         <Box>
           <TextField
             value={title}
-            // onChange={updateTitle}
+            onChange={updateTitle}
             placeholder='Untitled'
             variant='outlined'
             fullWidth
@@ -98,7 +157,7 @@ const Board = () => {
           />
           <TextField
             value={description}
-            // onChange={updateDescription}
+            onChange={updateDescription}
             placeholder='Add a description'
             variant='outlined'
             multiline
@@ -112,7 +171,7 @@ const Board = () => {
         </Box>
         <Box>
           {/* Kanban board */}
-          {/* <Kanban data={sections} boardId={boardId} /> */}
+          <Kanban data={sections} boardId={boardId} />
         </Box>
       </Box>
     </>

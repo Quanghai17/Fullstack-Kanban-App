@@ -10,7 +10,7 @@ const sectionSchema = new Schema({
   },
   title: {
     type: String,
-    default: ''
+    default: 'Section'
   }
 }, schemaOptions)
 

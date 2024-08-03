@@ -7,7 +7,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { setBoards } from '../../redux/features/boardSlice'
 import boardApi from '../../api/boardApi'
-import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd'
+import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd"
 
 const Sidebar = () => {
   const user = useSelector((state) => state.user.value)
@@ -108,6 +108,7 @@ const Sidebar = () => {
           </Box>
         </ListItem>
         <Box sx={{ paddingTop: '10px' }} />
+        {/* <FavouriteList /> */}
         <Box sx={{ paddingTop: '10px' }} />
         <ListItem>
           <Box sx={{
